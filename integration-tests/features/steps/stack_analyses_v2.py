@@ -33,7 +33,7 @@ logger = logging.getLogger(__file__)
 ECOSYSTEM_TO_MANIFEST_NAME_MAP = {
     'pypi': 'pylist.json',
     'npm': 'npmlist.json',
-    'maven': 'dependencies.txt'
+    'maven': 'dependencies.txt',
     'golang': 'golist.json'
 }
 
@@ -87,6 +87,10 @@ def post_request(context, ecosystem, manifest, with_user_key, with_valid_user_ke
             params = {'user_key': 'INVALID_USER_KEY_FOR_TESTING'}
         logger.debug('POST {} files: {} data: {} params: {}'.format(get_endpoint(context),
                                                                     files, data, params))
+
+        print("yet to make request")
+        print(data)
+        print(params)
         response = requests.post(get_endpoint(context), files=files, data=data,
                                  params=params)
     else:
