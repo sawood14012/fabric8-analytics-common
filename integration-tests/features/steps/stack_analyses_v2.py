@@ -36,11 +36,26 @@ ECOSYSTEM_TO_MANIFEST_NAME_MAP = {
     'maven': 'dependencies.txt',
     'golang': 'golist.json'
 }
+MAX_RETRIES = 5
 
 
 def get_endpoint(context):
     """Get endpoint for the stack analysis v2."""
     return urljoin(context.threescale_preview_url, '/api/v2/stack-analyses')
+
+
+def retry_get_call(retry_count, data):
+    """Retry SA get Call to check for timeout."""
+    if retry_count < MAX_RETRIES:
+        response = requests.get(url=data['url'], headers=data['headers'], params=data['params'])
+        if response.status_code == 408:
+            retry_count = retry_count + 1
+            time.sleep(30)
+            retry_get_call(retry_count, data)
+        else:
+            return response
+    else:
+        raise Exception('Bad HTTP status code 408: Timeout with Maximum Retries')
 
 
 def post_request(context, ecosystem, manifest, with_user_key, with_valid_user_key,
@@ -87,10 +102,6 @@ def post_request(context, ecosystem, manifest, with_user_key, with_valid_user_ke
             params = {'user_key': 'INVALID_USER_KEY_FOR_TESTING'}
         logger.debug('POST {} files: {} data: {} params: {}'.format(get_endpoint(context),
                                                                     files, data, params))
-
-        print("yet to make request")
-        print(data)
-        print(params)
         response = requests.post(get_endpoint(context), files=files, data=data,
                                  params=params)
     else:
@@ -116,10 +127,11 @@ def wait_for_completion(context, token='without', user='without'):
     """
     context.duration = None
     start_time = time.time()
-
+    retries = 5
     timeout = context.stack_analysis_timeout  # in seconds
     sleep_amount = 10  # we don't have to overload the API with too many calls
     with_user_key = parse_token_clause(token)
+    retry_count = 0
     is_user_registered = parse_token_clause(user)
 
     id = context.response.json().get('id')
@@ -134,10 +146,14 @@ def wait_for_completion(context, token='without', user='without'):
             uuid = context.uuid
             headers = {"uuid": uuid}
             params = {'user_key': context.three_scale_preview_user_key}
-            context.response = requests.get(url, headers=headers, params=params)
+            data = {"url": url, "headers": headers, "params": params}
+            #context.response = requests.get(url, headers=headers, params=params)
+            context.response = retry_get_call(retry_count, data)
         elif with_user_key:
             params = {'user_key': context.three_scale_preview_user_key}
-            context.response = requests.get(url, params=params)
+            data = {"url": url, "headers": {}, "params": params}
+            #context.response = requests.get(url, params=params)
+            context.response = retry_get_call(retry_count, data)
         else:
             context.response = requests.get(url)
         status_code = context.response.status_code

@@ -34,7 +34,7 @@ Feature: Stack analysis v2 API Golang Ecosystem Tests
         And I should receive JSON response with the correct timestamp in attribute submitted_at
 
     @sav2
-    Scenario Outline: Check the stack analysis v2 for invalid manifest data
+    Scenario Outline: Check the golang stack analysis v2 for invalid manifest data
         Given System is running
         Given Three scale preview service is running
         When I acquire the use_key for 3scale
@@ -44,7 +44,7 @@ Feature: Stack analysis v2 API Golang Ecosystem Tests
 
     
     @sav2
-    Scenario Outline: Check the stack analysis v2 request and response for proper data
+    Scenario Outline: Check the golang stack analysis v2 request and response for proper data
         Given System is running
         Given Three scale preview service is running
         When I acquire the use_key for 3scale
