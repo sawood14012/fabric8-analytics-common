@@ -44,13 +44,24 @@ def get_endpoint(context):
     return urljoin(context.threescale_preview_url, '/api/v2/stack-analyses')
 
 
-def retry_get_call(retry_count, data):
+def retry_get_call(context, retry_count, data):
     """Retry SA get Call to check for timeout."""
     if retry_count < MAX_RETRIES:
+        logger.debug('entring')
         response = requests.get(url=data['url'], headers=data['headers'], params=data['params'])
         if response.status_code == 408:
             retry_count = retry_count + 1
+            logger.debug('entered')
+            saved_data = context.check_point
+            print(" i am here")
+            print(saved_data)
+            post_request(context, saved_data['data']['ecosystem'], saved_data['files']['manifest'],
+                         saved_data['config']['with_user_key'], saved_data['config']['with_valid_user_key'],
+                         saved_data['config']['show_transitives'],saved_data['config']['is_user_registered'],
+                         saved_data['config']['is_invalid'])
             time.sleep(30)
+            id = context.response.json().get('id')
+            data['url'] = urljoin(get_endpoint(context) + '/', id)
             retry_get_call(retry_count, data)
         else:
             return response
@@ -71,6 +82,10 @@ def post_request(context, ecosystem, manifest, with_user_key, with_valid_user_ke
     else:
         uuid = context.uuid
     # set default values
+    config = {'with_user_key': with_user_key, 'with_valid_user_key': with_valid_user_key,
+             'show_transitives': show_transitives , 'is_user_registered' : is_user_registered,
+             'is_invalid' : is_invalid
+             }
     print(is_invalid)
     files = {}
     data = {'show_transitive': show_transitives}
@@ -93,6 +108,14 @@ def post_request(context, ecosystem, manifest, with_user_key, with_valid_user_ke
             params = {'user_key': 'INVALID_USER_KEY_FOR_TESTING'}
         logger.debug('POST {} files: {} data: {} params: {}'.format(get_endpoint(context),
                                                                     files, data, params))
+        save_point = {'Endpoint': get_endpoint(context),
+                      'headers' : headers,
+                      'files' : files,
+                      'data' : data,
+                      'params' : params,
+                      'config': config
+                     }
+        context.check_point = save_point
         response = requests.post(get_endpoint(context), headers=headers, files=files, data=data,
                                  params=params)
     elif with_user_key:
@@ -101,7 +124,15 @@ def post_request(context, ecosystem, manifest, with_user_key, with_valid_user_ke
         else:
             params = {'user_key': 'INVALID_USER_KEY_FOR_TESTING'}
         logger.debug('POST {} files: {} data: {} params: {}'.format(get_endpoint(context),
-                                                                    files, data, params))
+                                                                files, data, params))
+        save_point = {'Endpoint': get_endpoint(context),
+                      'headers' : {},
+                      'files' : files,
+                      'data' : data,
+                      'params' : params,
+                      'config': config
+                     }
+        context.check_point = save_point
         response = requests.post(get_endpoint(context), files=files, data=data,
                                  params=params)
     else:
@@ -148,12 +179,12 @@ def wait_for_completion(context, token='without', user='without'):
             params = {'user_key': context.three_scale_preview_user_key}
             data = {"url": url, "headers": headers, "params": params}
             #context.response = requests.get(url, headers=headers, params=params)
-            context.response = retry_get_call(retry_count, data)
+            context.response = retry_get_call(context, retry_count, data)
         elif with_user_key:
             params = {'user_key': context.three_scale_preview_user_key}
             data = {"url": url, "headers": {}, "params": params}
             #context.response = requests.get(url, params=params)
-            context.response = retry_get_call(retry_count, data)
+            context.response = retry_get_call(context, retry_count, data)
         else:
             context.response = requests.get(url)
         status_code = context.response.status_code
