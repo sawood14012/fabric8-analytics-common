@@ -39,6 +39,7 @@ jobs:
           working-directory: ./integration-tests 
           run: docker build -t f8a-e2e-tests .
         - name: Run End to End
+          working-directory: ./integration-tests
           run: |
             docker run -t \
               -e F8A_API_URL=${F8A_API_URL} \
