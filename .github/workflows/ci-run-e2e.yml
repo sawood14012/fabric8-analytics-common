@@ -16,7 +16,7 @@ jobs:
       runs-on: ubuntu-latest
       steps:
         - uses: actions/checkout@v2
-          if: github.event_name == "repository_dispatch"  && github.event.action == 'run-e2e-command'
+          if: github.event_name == "repository_dispatch"  && github.event.action == "run-e2e-command"
         - run: |
             git fetch origin +refs/pull/${{ github.event.client_payload.github.payload.issue.number }}/merge
             git checkout FETCH_HEAD
