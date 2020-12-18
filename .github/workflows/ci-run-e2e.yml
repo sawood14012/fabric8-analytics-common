@@ -1,6 +1,7 @@
 name: CI Run e2e
 
 on:
+  push:
   repository_dispatch:
     types: [run-tests-command]
 
