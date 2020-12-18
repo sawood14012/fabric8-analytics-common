@@ -3,8 +3,10 @@ name: CI Run e2e
 on:
   repository_dispatch:
     types: [run-tests-command]
-  check_suite:
-    types: [completed]
+  workflow_run:
+    workflows: ["CI"]
+    types: 
+      - completed
 
 env:
     THREE_SCALE_PREVIEW_USER_KEY: ${{ secrets.THREE_SCALE_PREVIEW_USER_KEY }}
