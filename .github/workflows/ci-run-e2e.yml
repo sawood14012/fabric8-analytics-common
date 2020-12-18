@@ -22,7 +22,7 @@ jobs:
             git fetch origin +refs/pull/${{ github.event.client_payload.github.payload.issue.number }}/merge
             git checkout FETCH_HEAD
         - name: Run End to End
-        - shell: bash
+          shell: bash
           working-directory: ./integration-tests
           run: |
 
