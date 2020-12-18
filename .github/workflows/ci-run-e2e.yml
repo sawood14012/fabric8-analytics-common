@@ -35,7 +35,8 @@ jobs:
             export F8A_LICENSE_SERVICE_URL=${F8A_LICENSE_SERVICE_URL:-https://license-analysis.api.prod-preview.openshift.io};
             export OSIO_AUTH_SERVICE=${OSIO_AUTH_SERVICE:-https://auth.prod-preview.openshift.io};
             export MANIFESTS_BUCKET_URL=${MANIFESTS_BUCKET_URL:-https://public-dynamic-manifests.s3.amazonaws.com/};
-        - name: Build Docker Image 
+        - name: Build Docker Image
+          working-directory: ./integration-tests 
           run: docker build -t f8a-e2e-tests .
         - name: Run End to End
           run: |
